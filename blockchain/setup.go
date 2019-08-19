@@ -72,21 +72,39 @@ func (setup *FabricSetup) Initialize() error {
 	if err != nil {
 		return errors.WithMessage(err, "failed to get admin signing identity")
 	}
-	req := resmgmt.SaveChannelRequest{ChannelID: setup.ChannelID, ChannelConfigPath: setup.ChannelConfig, SigningIdentities: []msp.SigningIdentity{adminIdentity}}
-	txID, err := setup.admin.SaveChannel(req, resmgmt.WithOrdererEndpoint(setup.OrdererID))
-	if err != nil || txID.TransactionID == "" {
-		//		return errors.WithMessage(err, "failed to save channel")
-		fmt.Println("failed to save channel")
-	}
-	fmt.Println("Channel created")
 
-	// Make admin user join the previously created channel
-	if err = setup.admin.JoinChannel(setup.ChannelID, resmgmt.WithRetry(retry.DefaultResMgmtOpts), resmgmt.WithOrdererEndpoint(setup.OrdererID)); err != nil {
-		//		return errors.WithMessage(err, "failed to make admin join channel")
-		fmt.Println("failed to make admin join channel")
+	channelHasInstall := false
+	// 查询已经存在的channel
+	channelRes, err := setup.admin.QueryChannels(resmgmt.WithTargetEndpoints("peer0.org1.hf.chainhero.io"))
+	if err != nil {
+		return errors.WithMessage(err, "failed to Query channel")
 	}
-	fmt.Println("Channel joined")
 
+	if channelRes != nil {
+		for _, channel := range channelRes.Channels {
+			if strings.EqualFold(setup.ChannelID, channel.ChannelId) {
+				channelHasInstall = true
+			}
+		}
+	}
+
+	fmt.Println("channelHasInstall:", channelHasInstall)
+	if !channelHasInstall {
+		req := resmgmt.SaveChannelRequest{ChannelID: setup.ChannelID, ChannelConfigPath: setup.ChannelConfig, SigningIdentities: []msp.SigningIdentity{adminIdentity}}
+		txID, err := setup.admin.SaveChannel(req, resmgmt.WithOrdererEndpoint(setup.OrdererID))
+		if err != nil || txID.TransactionID == "" {
+			return errors.WithMessage(err, "failed to save channel")
+		}
+		fmt.Println("Channel created")
+
+		// Make admin user join the previously created channel
+		if err = setup.admin.JoinChannel(setup.ChannelID, resmgmt.WithRetry(retry.DefaultResMgmtOpts), resmgmt.WithOrdererEndpoint(setup.OrdererID)); err != nil {
+			return errors.WithMessage(err, "failed to make admin join channel")
+		}
+		fmt.Println("Channel joined")
+	} else {
+		fmt.Println("Channel already exist")
+	}
 	fmt.Println("Initialization Successful")
 	setup.initialized = true
 	return nil
@@ -100,24 +118,58 @@ func (setup *FabricSetup) InstallAndInstantiateCC() error {
 	}
 	fmt.Println("ccPkg created")
 
-	// Install example cc to org peers
-	installCCReq := resmgmt.InstallCCRequest{Name: setup.ChainCodeID, Path: setup.ChaincodePath, Version: "0", Package: ccPkg}
-	_, err = setup.admin.InstallCC(installCCReq, resmgmt.WithRetry(retry.DefaultResMgmtOpts))
+	ccHasInstall := false
+	// 查询已经安装的CC
+	ccInstalledRes, err := setup.admin.QueryInstalledChaincodes(resmgmt.WithTargetEndpoints("peer0.org1.hf.chainhero.io"))
 	if err != nil {
-		return errors.WithMessage(err, "failed to install chaincode")
+		return errors.WithMessage(err, "failed to Query Installed chaincode")
 	}
-	fmt.Println("Chaincode installed")
 
-	// Set up chaincode policy
-	ccPolicy := cauthdsl.SignedByAnyMember([]string{"org1.hf.chainhero.io"})
-
-	resp, err := setup.admin.InstantiateCC(setup.ChannelID, resmgmt.InstantiateCCRequest{Name: setup.ChainCodeID, Path: setup.ChaincodeGoPath, Version: "0", Args: [][]byte{[]byte("init")}, Policy: ccPolicy})
-	if err != nil || resp.TransactionID == "" {
-		fmt.Println("failed to instantiate the chaincode")
-		//	return errors.WithMessage(err, "failed to instantiate the chaincode")
+	if ccInstalledRes != nil {
+		for _, cc := range ccInstalledRes.Chaincodes {
+			if strings.EqualFold(cc.Name, setup.ChainCodeID) {
+				ccHasInstall = true
+			}
+		}
 	}
-	fmt.Println("Chaincode instantiated")
+	fmt.Println("ccHasInstall", ccHasInstall)
+	if !ccHasInstall {
+		// Install example cc to org peers
+		installCCReq := resmgmt.InstallCCRequest{Name: setup.ChainCodeID, Path: setup.ChaincodePath, Version: "0", Package: ccPkg}
+		_, err = setup.admin.InstallCC(installCCReq, resmgmt.WithRetry(retry.DefaultResMgmtOpts))
+		if err != nil {
+			return errors.WithMessage(err, "failed to install chaincode")
+		}
+		fmt.Println("Chaincode installed")
+	} else {
+		fmt.Println("Chaincode already exist")
+	}
 
+	ccHasInstantiate := false
+	// 查询已经实例化的链码
+	// ccInstantiatedRes, err := setup.admin.QueryInstantiatedChaincodes(setup.ChannelID, resmgmt.WithOrdererEndpoint(setup.OrdererID))
+	ccInstantiatedRes, err := setup.admin.QueryInstantiatedChaincodes(setup.ChannelID, resmgmt.WithTargetEndpoints("peer0.org1.hf.chainhero.io"))
+
+	if ccInstantiatedRes.Chaincodes != nil && len(ccInstantiatedRes.Chaincodes) > 0 {
+		for _, chaincodeInfo := range ccInstantiatedRes.Chaincodes {
+			fmt.Println(chaincodeInfo)
+			if strings.EqualFold(chaincodeInfo.Name, setup.ChainCodeID) {
+				ccHasInstantiate = true
+			}
+		}
+	}
+	if !ccHasInstantiate {
+		// Set up chaincode policy
+		ccPolicy := cauthdsl.SignedByAnyMember([]string{"org1.hf.chainhero.io"})
+
+		resp, err := setup.admin.InstantiateCC(setup.ChannelID, resmgmt.InstantiateCCRequest{Name: setup.ChainCodeID, Path: setup.ChaincodeGoPath, Version: "0", Args: [][]byte{[]byte("init")}, Policy: ccPolicy})
+		if err != nil || resp.TransactionID == "" {
+			return errors.WithMessage(err, "failed to instantiate the chaincode")
+		}
+		fmt.Println("Chaincode instantiated")
+	} else {
+		fmt.Println("Chaincode has instantiated")
+	}
 	// Channel client is used to query and execute transactions
 	clientContext := setup.sdk.ChannelContext(setup.ChannelID, fabsdk.WithUser(setup.UserName))
 	setup.client, err = channel.New(clientContext)
