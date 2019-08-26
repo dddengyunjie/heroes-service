@@ -148,7 +148,7 @@ func (setup *FabricSetup) InstallAndInstantiateCC() error {
 	ccHasInstantiate := false
 	// 查询已经实例化的链码
 	// ccInstantiatedRes, err := setup.admin.QueryInstantiatedChaincodes(setup.ChannelID, resmgmt.WithOrdererEndpoint(setup.OrdererID))
-	ccInstantiatedRes, err := setup.admin.QueryInstantiatedChaincodes(setup.ChannelID, resmgmt.WithTargetEndpoints("peer0.org1.hf.chainhero.io"))
+	ccInstantiatedRes, err := setup.admin.QueryInstantiatedChaincodes(setup.ChannelID, resmgmt.WithTargetEndpoints("org1.hf.chainhero.io"))
 
 	if ccInstantiatedRes.Chaincodes != nil && len(ccInstantiatedRes.Chaincodes) > 0 {
 		for _, chaincodeInfo := range ccInstantiatedRes.Chaincodes {

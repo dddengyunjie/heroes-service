@@ -14,7 +14,7 @@ client:
   organization: org1
 
   logging:
-    level: debug
+    level: info
 
   # Global configuration for peer, event service and orderer timeouts
   # if this this section is omitted, then default values will be used (same values as below)
