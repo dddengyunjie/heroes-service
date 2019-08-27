@@ -2,6 +2,8 @@ package blockchain
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/event"
 	mspclient "github.com/hyperledger/fabric-sdk-go/pkg/client/msp"
@@ -148,15 +150,18 @@ func (setup *FabricSetup) InstallAndInstantiateCC() error {
 	ccHasInstantiate := false
 	// 查询已经实例化的链码
 	// ccInstantiatedRes, err := setup.admin.QueryInstantiatedChaincodes(setup.ChannelID, resmgmt.WithOrdererEndpoint(setup.OrdererID))
-	ccInstantiatedRes, err := setup.admin.QueryInstantiatedChaincodes(setup.ChannelID, resmgmt.WithTargetEndpoints("org1.hf.chainhero.io"))
-
-	if ccInstantiatedRes.Chaincodes != nil && len(ccInstantiatedRes.Chaincodes) > 0 {
-		for _, chaincodeInfo := range ccInstantiatedRes.Chaincodes {
-			fmt.Println(chaincodeInfo)
-			if strings.EqualFold(chaincodeInfo.Name, setup.ChainCodeID) {
-				ccHasInstantiate = true
+	ccInstantiatedRes, err := setup.admin.QueryInstantiatedChaincodes(setup.ChannelID, resmgmt.WithTargetEndpoints("peer0.org1.hf.chainhero.io"))
+	if err == nil {
+		if ccInstantiatedRes.Chaincodes != nil && len(ccInstantiatedRes.Chaincodes) > 0 {
+			for _, chaincodeInfo := range ccInstantiatedRes.Chaincodes {
+				fmt.Println(chaincodeInfo)
+				if strings.EqualFold(chaincodeInfo.Name, setup.ChainCodeID) {
+					ccHasInstantiate = true
+				}
 			}
 		}
+	} else {
+		fmt.Println("QueryInstantiatedChaincodes error:", err)
 	}
 	if !ccHasInstantiate {
 		// Set up chaincode policy

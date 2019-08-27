@@ -6,12 +6,16 @@ import (
 )
 
 // QueryHello query the chaincode to get the state of hello
-func (setup *FabricSetup) QueryHello() (string, error) {
+func (setup *FabricSetup) QueryHello(isHistory bool) (string, error) {
 
 	// Prepare arguments
 	var args []string
 	args = append(args, "invoke")
-	args = append(args, "query")
+	if isHistory {
+		args = append(args, "queryHistory")
+	} else {
+		args = append(args, "query")
+	}
 	args = append(args, "hello")
 
 	response, err := setup.client.Query(channel.Request{ChaincodeID: setup.ChainCodeID, Fcn: args[0], Args: [][]byte{[]byte(args[1]), []byte(args[2])}})

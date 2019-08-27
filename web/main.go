@@ -50,7 +50,7 @@ func initialize() (*app.Application, error) {
 	}
 
 	// Query the chaincode
-	response, err := fSetup.QueryHello()
+	response, err := fSetup.QueryHello(false)
 	if err != nil {
 		fmt.Printf("Unable to query hello on the chaincode: %v\n", err)
 	} else {
@@ -65,7 +65,7 @@ func initialize() (*app.Application, error) {
 	}
 
 	// Query again the chaincode
-	response, err = fSetup.QueryHello()
+	response, err = fSetup.QueryHello(false)
 	if err != nil {
 		fmt.Printf("Unable to query hello on the chaincode: %v\n", err)
 	} else {
@@ -86,6 +86,7 @@ func main() {
 	beego.Router("/", &controllers.MainController{})
 	beego.Router("/upload/:value:string", &controllers.UploadController{App: app}, "*:Upload")
 	beego.Router("/show", &controllers.ShowController{App: app}, "get:Show;post:Show")
+	beego.Router("/showHistory", &controllers.ShowController{App: app}, "get:ShowHistory;post:ShowHistory")
 
 	beego.Run()
 }

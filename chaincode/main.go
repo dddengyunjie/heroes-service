@@ -61,7 +61,9 @@ func (t *HeroesServiceChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Res
 	if args[0] == "query" {
 		return t.query(stub, args)
 	}
-
+	if args[0] == "queryHistory" {
+		return t.queryHistory(stub, args)
+	}
 	// The update argument will manage all update in the ledger
 	if args[0] == "invoke" {
 		return t.invoke(stub, args)
@@ -184,71 +186,75 @@ func (t *HeroesServiceChaincode) invoke(stub shim.ChaincodeStubInterface, args [
 }
 
 //args:name hashvalue owner
-func (sc *HeroesServiceChaincode) queryHistoryAsset(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	if len(args) < 3 {
-		return shim.Error("Incorrect number of arguments. Expecting 1")
+func (sc *HeroesServiceChaincode) queryHistory(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	fmt.Println("########### HeroesServiceChaincode query ###########")
+
+	// Check whether the number of arguments is sufficient
+	if len(args) < 2 {
+		return shim.Error("The number of arguments is insufficient.")
 	}
 
-	name := args[0]
-	hashvalue := args[1]
-	owner := args[2]
-	kk, _ := stub.CreateCompositeKey(name, []string{hashvalue, owner})
-	fmt.Printf("- start getHistoryForMarble: %s\n", kk)
-
-	resultsIterator, err := stub.GetHistoryForKey(kk)
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-	defer resultsIterator.Close()
-
-	// buffer is a JSON array containing historic values for the marble
-	var buffer bytes.Buffer
-	buffer.WriteString("[")
-
-	bArrayMemberAlreadyWritten := false
-	for resultsIterator.HasNext() {
-		response, err := resultsIterator.Next()
+	// Like the Invoke function, we manage multiple type of query requests with the second argument.
+	// We also have only one possible argument: hello
+	if args[1] == "hello" {
+		//GetHistoryForKey
+		resultsIterator, err := stub.GetHistoryForKey("hello")
 		if err != nil {
 			return shim.Error(err.Error())
 		}
-		// Add a comma before array members, suppress it for the first array member
-		if bArrayMemberAlreadyWritten == true {
-			buffer.WriteString(",")
+		defer resultsIterator.Close()
+
+		// buffer is a JSON array containing historic values for the key
+		var buffer bytes.Buffer
+		buffer.WriteString("[")
+		bArrayMemberAlreadyWritten := false
+		for resultsIterator.HasNext() {
+			response, err := resultsIterator.Next()
+			if err != nil {
+				return shim.Error(err.Error())
+			}
+			// Add a comma before array members, suppress it for the first array member
+			if bArrayMemberAlreadyWritten == true {
+				buffer.WriteString(",")
+			}
+			buffer.WriteString("{\"TxId\":")
+			buffer.WriteString("\"")
+			buffer.WriteString(response.TxId)
+			buffer.WriteString("\"")
+
+			buffer.WriteString(", \"Value\":")
+			// if it was a delete operation on given key, then we need to set the
+			//corresponding value null. Else, we will write the response.Value
+			//as-is (as the Value itself a JSON marble)
+			if response.IsDelete {
+				buffer.WriteString("null")
+			} else {
+				buffer.WriteString(string(response.Value))
+			}
+
+			buffer.WriteString(", \"Timestamp\":")
+			buffer.WriteString("\"")
+			buffer.WriteString(time.Unix(response.Timestamp.Seconds, int64(response.Timestamp.Nanos)).String())
+			buffer.WriteString("\"")
+
+			buffer.WriteString(", \"IsDelete\":")
+			buffer.WriteString("\"")
+			buffer.WriteString(strconv.FormatBool(response.IsDelete))
+			buffer.WriteString("\"")
+
+			buffer.WriteString("}")
+			bArrayMemberAlreadyWritten = true
 		}
-		buffer.WriteString("{\"TxId\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(response.TxId)
-		buffer.WriteString("\"")
+		buffer.WriteString("]")
 
-		buffer.WriteString(", \"Value\":")
-		// if it was a delete operation on given key, then we need to set the
-		//corresponding value null. Else, we will write the response.Value
-		//as-is (as the Value itself a JSON marble)
-		if response.IsDelete {
-			buffer.WriteString("null")
-		} else {
-			buffer.WriteString(string(response.Value))
-		}
-
-		buffer.WriteString(", \"Timestamp\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(time.Unix(response.Timestamp.Seconds, int64(response.Timestamp.Nanos)).String())
-		buffer.WriteString("\"")
-
-		buffer.WriteString(", \"IsDelete\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(strconv.FormatBool(response.IsDelete))
-		buffer.WriteString("\"")
-
-		buffer.WriteString("}")
-		bArrayMemberAlreadyWritten = true
+		fmt.Printf("- getHistoryForMarble returning:\n%s\n", buffer.String())
+		var data []byte = []byte(buffer.String())
+		// Return this value in response
+		return shim.Success(data)
 	}
-	buffer.WriteString("]")
 
-	fmt.Printf("- getHistoryForMarble returning:\n%s\n", buffer.String())
-
-	return shim.Success(buffer.Bytes())
-
+	// If the arguments given don’t match any function, we return an error
+	return shim.Error("Unknown query action, check the second argument.")
 }
 func main() {
 	// Start the chaincode and make it ready for futures requests
