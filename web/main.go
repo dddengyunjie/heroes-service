@@ -87,6 +87,12 @@ func main() {
 	beego.Router("/upload/:value:string", &controllers.UploadController{App: app}, "*:Upload")
 	beego.Router("/show", &controllers.ShowController{App: app}, "get:Show;post:Show")
 	beego.Router("/showHistory", &controllers.ShowController{App: app}, "get:ShowHistory;post:ShowHistory")
+	beego.Router("/initMarble/:name:string/:color:string/:size:int/:owner:string", &controllers.MarbleController{App: app}, "*:InitMarble")
+	beego.Router("/deleteMarble/:name:string", &controllers.MarbleController{App: app}, "*:DeleteMarble")
+	beego.Router("/readMarble/:name:string", &controllers.MarbleController{App: app}, "*:ReadMarble")
+	beego.Router("/transferMarble/:name:string/:newOwner:string", &controllers.MarbleController{App: app}, "*:TransferMarble")
+	beego.Router("/transferMarbleBasedOnColor/:color:string/:newOwner:string", &controllers.MarbleController{App: app}, "*:TransferMarbleBasedOnColor")
+	beego.Router("/queryMarblesByOwner/:owner:string", &controllers.MarbleController{App: app}, "*:QueryMarblesByOwner")
 
 	beego.Run()
 }
