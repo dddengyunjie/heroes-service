@@ -498,12 +498,12 @@ func addPaginationMetadataToQueryResults(buffer *bytes.Buffer, responseMetadata 
 // ===========================================================================================
 func (t *HeroesServiceChaincode) getMarblesByRange(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
-	if len(args) < 2 {
-		return shim.Error("Incorrect number of arguments. Expecting 2")
+	if len(args) < 3 {
+		return shim.Error("Incorrect number of arguments. Expecting 3")
 	}
 
-	startKey := args[0]
-	endKey := args[1]
+	startKey := args[1]
+	endKey := args[2]
 
 	resultsIterator, err := stub.GetStateByRange(startKey, endKey)
 	if err != nil {
@@ -531,7 +531,7 @@ func (t *HeroesServiceChaincode) getMarblesByRange(stub shim.ChaincodeStubInterf
 // ===========================================================================================
 func (t *HeroesServiceChaincode) transferMarblesBasedOnColor(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
-	//   0       1
+	//   1       2
 	// "color", "bob"
 	if len(args) < 3 {
 		return shim.Error("Incorrect number of arguments. Expecting 3")
@@ -569,7 +569,7 @@ func (t *HeroesServiceChaincode) transferMarblesBasedOnColor(stub shim.Chaincode
 
 		// Now call the transfer function for the found marble.
 		// Re-use the same function that is used to transfer individual marbles
-		response := t.transferMarble(stub, []string{returnedMarbleName, newOwner})
+		response := t.transferMarble(stub, []string{"", returnedMarbleName, newOwner})
 		// if the transfer failed break out of loop and return error
 		if response.Status != shim.OK {
 			return shim.Error("Transfer failed: " + response.Message)
@@ -577,7 +577,7 @@ func (t *HeroesServiceChaincode) transferMarblesBasedOnColor(stub shim.Chaincode
 	}
 
 	responsePayload := fmt.Sprintf("Transferred %d %s marbles to %s", i, color, newOwner)
-	err = stub.SetEvent("eventTransferMarbleBasedOnColor", []byte{})
+	err = stub.SetEvent("eventTransferMarblesBasedOnColor", []byte{})
 	if err != nil {
 		return shim.Error(err.Error())
 	}
@@ -693,18 +693,18 @@ func getQueryResultForQueryString(stub shim.ChaincodeStubInterface, queryString 
 // ===========================================================================================
 func (t *HeroesServiceChaincode) getMarblesByRangeWithPagination(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
-	if len(args) < 4 {
-		return shim.Error("Incorrect number of arguments. Expecting 4")
+	if len(args) < 5 {
+		return shim.Error("Incorrect number of arguments. Expecting 5")
 	}
 
-	startKey := args[0]
-	endKey := args[1]
+	startKey := args[1]
+	endKey := args[2]
 	//return type of ParseInt is int64
-	pageSize, err := strconv.ParseInt(args[2], 10, 32)
+	pageSize, err := strconv.ParseInt(args[3], 10, 32)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-	bookmark := args[3]
+	bookmark := args[4]
 
 	resultsIterator, responseMetadata, err := stub.GetStateByRangeWithPagination(startKey, endKey, int32(pageSize), bookmark)
 	if err != nil {
@@ -784,11 +784,11 @@ func getQueryResultForQueryStringWithPagination(stub shim.ChaincodeStubInterface
 
 func (t *HeroesServiceChaincode) getHistoryForMarble(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
-	if len(args) < 1 {
-		return shim.Error("Incorrect number of arguments. Expecting 1")
+	if len(args) < 2 {
+		return shim.Error("Incorrect number of arguments. Expecting 2")
 	}
 
-	marbleName := args[0]
+	marbleName := args[1]
 
 	fmt.Printf("- start getHistoryForMarble: %s\n", marbleName)
 

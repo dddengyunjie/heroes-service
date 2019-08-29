@@ -3,11 +3,9 @@ package routers
 import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/context"
-	"github.com/dddengyunjie/heroes-service/web/controllers"
 )
 
 func init() {
-	beego.Router("/", &controllers.MainController{})
 	//初始化 namespace
 	ns :=
 		beego.NewNamespace("/v1",

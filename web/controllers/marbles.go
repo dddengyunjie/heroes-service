@@ -71,15 +71,15 @@ func (this *MarbleController) TransferMarble() {
 	}
 }
 
-func (this *MarbleController) TransferMarbleBasedOnColor() {
+func (this *MarbleController) TransferMarblesBasedOnColor() {
 	color := this.Ctx.Input.Param(":color")
 	newOwner := this.Ctx.Input.Param(":newOwner")
-	_, err := this.App.Fabric.TransferMarbleBasedOnColor(color, newOwner)
+	_, err := this.App.Fabric.TransferMarblesBasedOnColor(color, newOwner)
 	if err != nil {
-		fmt.Println("Failed to TransferMarbleBasedOnColor:", err)
-		this.Ctx.Output.Body([]byte("TransferMarbleBasedOnColor failed"))
+		fmt.Println("Failed to TransferMarblesBasedOnColor:", err)
+		this.Ctx.Output.Body([]byte("TransferMarblesBasedOnColor failed"))
 	} else {
-		this.Ctx.Output.Body([]byte("TransferMarbleBasedOnColor success"))
+		this.Ctx.Output.Body([]byte("TransferMarblesBasedOnColor success"))
 	}
 }
 
@@ -89,6 +89,58 @@ func (this *MarbleController) QueryMarblesByOwner() {
 	if err != nil {
 		fmt.Println("Failed to QueryMarblesByOwner:", err)
 		this.Ctx.Output.Body([]byte("QueryMarblesByOwner failed"))
+	} else {
+		this.Ctx.Output.Body([]byte(result))
+	}
+}
+
+func (this *MarbleController) GetMarblesByRange() {
+	startKey := this.Ctx.Input.Param(":startKey")
+	endKey := this.Ctx.Input.Param(":endKey")
+	result, err := this.App.Fabric.GetMarblesByRange(startKey, endKey)
+	if err != nil {
+		fmt.Println("Failed to GetMarblesByRange:", err)
+		this.Ctx.Output.Body([]byte("GetMarblesByRange failed"))
+	} else {
+		this.Ctx.Output.Body([]byte(result))
+	}
+}
+
+func (this *MarbleController) GetMarblesByRangeWithPagination() {
+	startKey := this.Ctx.Input.Param(":startKey")
+	endKey := this.Ctx.Input.Param(":endKey")
+	pageSize, err := strconv.Atoi(this.Ctx.Input.Param(":pageSize"))
+	bookMark := this.Ctx.Input.Param(":bookMark")
+	if err != nil {
+		fmt.Println("Failed to initMarble:", err)
+		return
+	}
+	result, err := this.App.Fabric.GetMarblesByRangeWithPagination(startKey, endKey, pageSize, bookMark)
+	if err != nil {
+		fmt.Println("Failed to getMarblesByRangeWithPagination:", err)
+		this.Ctx.Output.Body([]byte("getMarblesByRangeWithPagination failed"))
+	} else {
+		this.Ctx.Output.Body([]byte(result))
+	}
+}
+
+func (this *MarbleController) QueryMarbles() {
+	queryString := this.Ctx.Input.Param(":queryString")
+	result, err := this.App.Fabric.QueryMarbles(queryString)
+	if err != nil {
+		fmt.Println("Failed to QueryMarbles:", err)
+		this.Ctx.Output.Body([]byte("QueryMarbles failed"))
+	} else {
+		this.Ctx.Output.Body([]byte(result))
+	}
+}
+
+func (this *MarbleController) GetHistoryForMarble() {
+	name := this.Ctx.Input.Param(":name")
+	result, err := this.App.Fabric.GetHistoryForMarble(name)
+	if err != nil {
+		fmt.Println("Failed to GetHistoryForMarble:", err)
+		this.Ctx.Output.Body([]byte("GetHistoryForMarble failed"))
 	} else {
 		this.Ctx.Output.Body([]byte(result))
 	}

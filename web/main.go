@@ -91,8 +91,12 @@ func main() {
 	beego.Router("/deleteMarble/:name:string", &controllers.MarbleController{App: app}, "*:DeleteMarble")
 	beego.Router("/readMarble/:name:string", &controllers.MarbleController{App: app}, "*:ReadMarble")
 	beego.Router("/transferMarble/:name:string/:newOwner:string", &controllers.MarbleController{App: app}, "*:TransferMarble")
-	beego.Router("/transferMarbleBasedOnColor/:color:string/:newOwner:string", &controllers.MarbleController{App: app}, "*:TransferMarbleBasedOnColor")
+	beego.Router("/transferMarblesBasedOnColor/:color:string/:newOwner:string", &controllers.MarbleController{App: app}, "*:TransferMarblesBasedOnColor")
 	beego.Router("/queryMarblesByOwner/:owner:string", &controllers.MarbleController{App: app}, "*:QueryMarblesByOwner")
+	beego.Router("/getMarblesByRange/:startKey:string/:endKey:string", &controllers.MarbleController{App: app}, "*:GetMarblesByRange")
+	beego.Router("/getMarblesByRangeWithPagination/:startKey:string/:endKey:string/:pageSize:int/:bookMark:string", &controllers.MarbleController{App: app}, "*:GetMarblesByRangeWithPagination")
+	beego.Router("/queryMarbles/:queryString:string", &controllers.MarbleController{App: app}, "*:QueryMarbles")
+	beego.Router("/getHistoryForMarble/:name:string", &controllers.MarbleController{App: app}, "*:GetHistoryForMarble")
 
 	beego.Run()
 }

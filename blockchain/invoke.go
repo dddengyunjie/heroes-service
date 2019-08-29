@@ -163,20 +163,20 @@ func (setup *FabricSetup) TransferMarble(name string, newOwner string) (string, 
 	return string(response.TransactionID), nil
 }
 
-// TransferMarbleBasedOnColor
-func (setup *FabricSetup) TransferMarbleBasedOnColor(color string, newOwner string) (string, error) {
+// TransferMarblesBasedOnColor
+func (setup *FabricSetup) TransferMarblesBasedOnColor(color string, newOwner string) (string, error) {
 	// Prepare arguments
 	var args []string
 	args = append(args, "invoke")
-	args = append(args, "transferMarbleBasedOnColor")
+	args = append(args, "transferMarblesBasedOnColor")
 	args = append(args, color)
 	args = append(args, newOwner)
 
-	eventID := "eventTransferMarbleBasedOnColor"
+	eventID := "eventTransferMarblesBasedOnColor"
 
 	// Add data that will be visible in the proposal, like a description of the invoke request
 	transientDataMap := make(map[string][]byte)
-	transientDataMap["result"] = []byte("Transient data in transferMarbleBasedOnColor invoke")
+	transientDataMap["result"] = []byte("Transient data in transferMarblesBasedOnColor invoke")
 
 	reg, notifier, err := setup.event.RegisterChaincodeEvent(setup.ChainCodeID, eventID)
 	if err != nil {
