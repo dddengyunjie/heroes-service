@@ -111,6 +111,9 @@ func (this *MarbleController) GetMarblesByRangeWithPagination() {
 	endKey := this.Ctx.Input.Param(":endKey")
 	pageSize, err := strconv.Atoi(this.Ctx.Input.Param(":pageSize"))
 	bookMark := this.Ctx.Input.Param(":bookMark")
+	if bookMark == "nil" { //FIXME 暂时用这个方法，需要完善
+		bookMark = ""
+	}
 	if err != nil {
 		fmt.Println("Failed to initMarble:", err)
 		return
@@ -125,7 +128,7 @@ func (this *MarbleController) GetMarblesByRangeWithPagination() {
 }
 
 func (this *MarbleController) QueryMarbles() {
-	queryString := this.Ctx.Input.Param(":queryString")
+	queryString := this.Ctx.Input.Param(":splat")
 	result, err := this.App.Fabric.QueryMarbles(queryString)
 	if err != nil {
 		fmt.Println("Failed to QueryMarbles:", err)
@@ -143,5 +146,59 @@ func (this *MarbleController) GetHistoryForMarble() {
 		this.Ctx.Output.Body([]byte("GetHistoryForMarble failed"))
 	} else {
 		this.Ctx.Output.Body([]byte(result))
+	}
+}
+
+func (this *MarbleController) QueryMarblesWithPagination() {
+	//queryString := this.Ctx.Input.Param(":queryString")
+	pageSize, err := strconv.Atoi(this.Ctx.Input.Param(":pageSize"))
+	bookMark := this.Ctx.Input.Param(":bookMark")
+	if bookMark == "nil" { //FIXME 暂时用这个方法，需要完善
+		bookMark = ""
+	}
+	queryString := this.Ctx.Input.Param(":splat")
+	if err != nil {
+		fmt.Println("Failed to initMarble:", err)
+		return
+	}
+	result, err := this.App.Fabric.QueryMarblesWithPagination(queryString, pageSize, bookMark)
+	if err != nil {
+		fmt.Println("Failed to QueryMarblesWithPagination:", err)
+		this.Ctx.Output.Body([]byte("QueryMarblesWithPagination failed"))
+	} else {
+		this.Ctx.Output.Body([]byte(result))
+	}
+}
+
+//TestInitMarble
+//测试需要，批量运行InitMarble函数
+func (this *MarbleController) TestInitMarble() {
+	name := this.Ctx.Input.Param(":name")
+	color := this.Ctx.Input.Param(":color")
+	size, err := strconv.Atoi(this.Ctx.Input.Param(":size"))
+	if err != nil {
+		fmt.Println("Failed to initMarble:", err)
+		return
+	}
+	owner := this.Ctx.Input.Param(":owner")
+	number, err := strconv.Atoi(this.Ctx.Input.Param(":number"))
+	if err != nil {
+		fmt.Println("Failed to initMarble:", err)
+		return
+	}
+
+	var marble pkgMarble.Marble
+	marble.Color = color
+	marble.Size = size
+	marble.Owner = owner
+	for i := 0; i < number; i++ {
+		marble.Name = name + strconv.Itoa(i)
+		_, err := this.App.Fabric.InitMarble(marble)
+		if err != nil {
+			fmt.Println("Failed to initMarble:", err)
+			this.Ctx.Output.Body([]byte("InitMarble failed"))
+		} else {
+			this.Ctx.Output.Body([]byte("InitMarble success"))
+		}
 	}
 }

@@ -94,9 +94,11 @@ func main() {
 	beego.Router("/transferMarblesBasedOnColor/:color:string/:newOwner:string", &controllers.MarbleController{App: app}, "*:TransferMarblesBasedOnColor")
 	beego.Router("/queryMarblesByOwner/:owner:string", &controllers.MarbleController{App: app}, "*:QueryMarblesByOwner")
 	beego.Router("/getMarblesByRange/:startKey:string/:endKey:string", &controllers.MarbleController{App: app}, "*:GetMarblesByRange")
-	beego.Router("/getMarblesByRangeWithPagination/:startKey:string/:endKey:string/:pageSize:int/:bookMark:string", &controllers.MarbleController{App: app}, "*:GetMarblesByRangeWithPagination")
-	beego.Router("/queryMarbles/:queryString:string", &controllers.MarbleController{App: app}, "*:QueryMarbles")
+	beego.Router("/queryMarblesWithPagination/:pageSize:int/:bookMark:string/*", &controllers.MarbleController{App: app}, "*:QueryMarblesWithPagination") //FIXME 此处路由配置不够优雅
+	beego.Router("/getMarblesByRangeWithPagination/:startKey:string/:endKey:string/:pageSize:int/?:bookMark:string", &controllers.MarbleController{App: app}, "*:GetMarblesByRangeWithPagination")
+	beego.Router("/queryMarbles/*", &controllers.MarbleController{App: app}, "*:QueryMarbles") //FIXME 此处路由配置不够优雅
 	beego.Router("/getHistoryForMarble/:name:string", &controllers.MarbleController{App: app}, "*:GetHistoryForMarble")
+	beego.Router("/testInitMarble/:name:string/:color:string/:size:int/:owner:string/:number:int", &controllers.MarbleController{App: app}, "*:TestInitMarble")
 
 	beego.Run()
 }

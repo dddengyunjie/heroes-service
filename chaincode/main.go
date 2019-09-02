@@ -635,12 +635,12 @@ func (t *HeroesServiceChaincode) queryMarbles(stub shim.ChaincodeStubInterface, 
 
 	//   0
 	// "queryString"
-	if len(args) < 1 {
+	if len(args) < 2 {
 		return shim.Error("Incorrect number of arguments. Expecting 1")
 	}
 
-	queryString := args[0]
-
+	queryString := args[1]
+	fmt.Printf("queryMarbles,queryString=%s\n", queryString)
 	queryResults, err := getQueryResultForQueryString(stub, queryString)
 	if err != nil {
 		return shim.Error(err.Error())
@@ -737,17 +737,17 @@ func (t *HeroesServiceChaincode) queryMarblesWithPagination(stub shim.ChaincodeS
 
 	//   0
 	// "queryString"
-	if len(args) < 3 {
-		return shim.Error("Incorrect number of arguments. Expecting 3")
+	if len(args) < 4 {
+		return shim.Error("Incorrect number of arguments. Expecting 4")
 	}
 
-	queryString := args[0]
+	queryString := args[1]
 	//return type of ParseInt is int64
-	pageSize, err := strconv.ParseInt(args[1], 10, 32)
+	pageSize, err := strconv.ParseInt(args[2], 10, 32)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-	bookmark := args[2]
+	bookmark := args[3]
 
 	queryResults, err := getQueryResultForQueryStringWithPagination(stub, queryString, int32(pageSize), bookmark)
 	if err != nil {

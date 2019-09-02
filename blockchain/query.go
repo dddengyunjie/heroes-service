@@ -132,3 +132,22 @@ func (setup *FabricSetup) GetHistoryForMarble(name string) (string, error) {
 
 	return string(response.Payload), nil
 }
+
+// QueryMarblesWithPagination
+func (setup *FabricSetup) QueryMarblesWithPagination(queryString string, pageSize int, bookMark string) (string, error) {
+	// Prepare arguments
+	var args []string
+	args = append(args, "query")
+	args = append(args, "queryMarblesWithPagination")
+	args = append(args, queryString)
+	args = append(args, strconv.Itoa(pageSize))
+	args = append(args, bookMark)
+
+	// Create a request (proposal) and send it
+	response, err := setup.client.Query(channel.Request{ChaincodeID: setup.ChainCodeID, Fcn: args[0], Args: [][]byte{[]byte(args[1]), []byte(args[2]), []byte(args[3]), []byte(args[4])}})
+	if err != nil {
+		return "", fmt.Errorf("failed to query funds: %v", err)
+	}
+
+	return string(response.Payload), nil
+}
