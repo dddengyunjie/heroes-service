@@ -32,9 +32,9 @@ Admin server Running on :8088
 管理界面http://localhost:8088/ 
 
 接口调用
-1.初始化marble,示例初始化一个名称为marble1，颜色为blue，大小为10，所有者为tom的marble:
+1. 初始化marble,示例初始化一个名称为marble1，颜色为blue，大小为10，所有者为tom的marble:
 http://localhost:8080/initMarble/marble1/blue/10/tom
-2.根据颜色交易marble
+2. 根据颜色交易marble
 http://localhost:8080/transferMarblesBasedOnColor/blue/lily
 这些接口都是直接用 hyperledger/fabric-samples/chaincode/marbles02/ 里的，具体可查看https://github.com/hyperledger/fabric-samples/tree/release-1.4/chaincode/marbles02
 关于其它接口可查看web/main.go 文件，接口这块还很粗糙，后续再改进。
