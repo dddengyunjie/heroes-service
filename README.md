@@ -1,12 +1,13 @@
 # heroes-service
 准备工作
+```
 1.golang
 2.docker
 3.docker-compose
 4.hyperledger fabric
 5.hyperledger fabric-sdk-go
 6.beego 安装流程查看beego官网https://beego.me/
-
+```
 拉取源代码
 ```
 mkdir -p $GOPATH/src/github.com/dddengyunjie
